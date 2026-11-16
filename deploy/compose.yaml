@@ -1,0 +1,52 @@
+# ─────────────────────────────────────────────────────────────────────────────
+# Hermes Agent — docker compose для VPS (задание P1)
+#
+# Запуск:
+#   export HERMES_UID="$(id -u)" HERMES_GID="$(id -g)"
+#   docker compose up -d
+#   docker compose logs -f           # признак успеха: "NN total bundled" навыков
+#
+# Данные и секреты лежат в ~/.hermes на ХОСТЕ и монтируются в /opt/data —
+# именно этот путь ожидает агент внутри контейнера (НЕ /opt/hermes).
+# ─────────────────────────────────────────────────────────────────────────────
+services:
+  hermes:
+    image: nousresearch/hermes-agent:latest   # официальный образ, лицензия MIT
+    container_name: hermes
+    restart: unless-stopped                    # сам поднимется после сбоя/ребута VPS
+                                               # (доказательство автономности для P1)
+    command: gateway run                       # запустить шлюз (Telegram + cron)
+
+    # Запускаемся НЕ от root внутри контейнера: UID/GID непривилегированного
+    # пользователя хоста прокидываются внутрь (снижает ущерб при компрометации, T3).
+    environment:
+      - HERMES_UID=${HERMES_UID:-1000}
+      - HERMES_GID=${HERMES_GID:-1000}
+      - HERMES_DASHBOARD=1                      # веб-дашборд наблюдаемости (T4)
+
+    # Единственная точка монтирования: каталог конфигурации и памяти.
+    # Всё состояние агента (config.yaml, .env, memories/, skills/, cron/, logs/)
+    # переживает пересоздание контейнера, т.к. лежит на хосте.
+    volumes:
+      - ~/.hermes:/opt/data
+
+    # Порты публикуем ТОЛЬКО на localhost — наружу их открывает SSH-туннель,
+    # а не firewall. Дашборд/API не должны «смотреть» в интернет (T3).
+    ports:
+      - "127.0.0.1:9119:9119"   # dashboard (наблюдаемость: шаги, расход токенов)
+      - "127.0.0.1:8642:8642"   # gateway API
+
+    # Жёсткий потолок ресурсов: агент не должен съесть весь VPS при зацикливании
+    # (защита от «runaway»-сценария, см. раздел «Отладка» и T3).
+    deploy:
+      resources:
+        limits:
+          memory: 1G
+          cpus: "1.0"
+
+    # Ограничение ротации логов docker, чтобы журнал не забил диск (T4, «Ход работы» п.17).
+    logging:
+      driver: json-file
+      options:
+        max-size: "10m"
+        max-file: "5"

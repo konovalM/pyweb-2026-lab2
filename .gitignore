@@ -1,0 +1,25 @@
+# === СЕКРЕТЫ — никогда не коммитить ===
+.env
+*.env
+!.env.example
+hermes/.env
+**/secrets/
+*.key
+*.pem
+id_rsa*
+id_ed25519*
+
+# === Состояние агента (генерируется на сервере) ===
+hermes/sessions/
+hermes/logs/
+hermes/home/
+hermes/profiles/
+hermes/*.sqlite
+hermes/*.db
+
+# === Python / служебное ===
+__pycache__/
+*.pyc
+.venv/
+venv/
+.DS_Store
