@@ -1,50 +1,34 @@
-# ─────────────────────────────────────────────────────────────────────────────
-# Конфиг агента.  На сервере — ~/.hermes/config.yaml (мастер `setup` создаёт его,
-# этот файл показывает итоговое состояние и служит образцом для отчёта P1).
-# ─────────────────────────────────────────────────────────────────────────────
-
-# === Модель =================================================================
-# Основная модель — бесплатная на OpenRouter, контекст ≥ 64k (требование задания).
-# Llama 3.3 70B Instruct (free): контекст 131k, function calling — есть.
-# Запасная (fallback) — Llama 4 Maverick (free), контекст 1M, на случай 429.
+# Конфиг агента (Hermes) — провайдер Google Gemini (OpenAI-совместимый эндпоинт).
 model:
-  provider: "openrouter"
-  default: "meta-llama/llama-3.3-70b-instruct:free"
+  provider: "openai"                       # Gemini отдаёт OpenAI-совместимый /v1beta/openai
+  default: "gemini-flash-lite-latest"      # Flash-Lite: 1M контекст, tool-use, быстрая, высокий free-лимит, доступна
+  context_length: 1048576                  # ~1M контекст
   fallback:
-    - "meta-llama/llama-4-maverick:free"
-  # Для вспомогательных дешёвых подзадач (суммаризация, роутинг) — отдельная
-  # более дешёвая модель снижает расход (приём экономии токенов, T2).
-  helper: "meta-llama/llama-3.3-70b-instruct:free"
-  temperature: 0.2          # ниже температура → выше воспроизводимость (T4)
+    - "gemini-3.1-flash-lite"              # запасные при 503/перегрузке
+    - "gemini-3-flash-preview"
+  temperature: 0.2
 
-# === Шлюзы ==================================================================
 gateways:
   telegram:
     enabled: true
-    # Токен и allowlist берутся из .env (TELEGRAM_BOT_TOKEN, TELEGRAM_ALLOWED_USERS).
   cli:
-    enabled: true           # командная строка для отладки на сервере
+    enabled: true
 
-# === Инструменты (включаем нужные для исследовательских задач) ===============
 tools:
-  web_search: true          # веб-поиск
-  web_fetch: true           # загрузка и чтение страниц
-  files: true               # чтение/запись файлов
+  web_search: true
+  web_fetch: true
+  files: true
   shell:
     enabled: true
-    # Белый список команд — агент не выполняет произвольный shell (T3, P5).
-    allowlist:
-      - "git"
-      - "python3"
-      - "mkdocs"
-      - "ls"
-      - "cat"
-      - "curl"
-    confirm_destructive: true   # опасные операции требуют подтверждения человеком
-  scheduler: true           # cron-планировщик
+    allowlist: ["git", "python3", "mkdocs", "ls", "cat", "curl"]
+    confirm_destructive: true
+  scheduler: true
 
-# === Наблюдаемость (T4) =====================================================
 observability:
-  log_steps: true           # трассировка каждого шага
-  log_tokens: true          # учёт расхода токенов и стоимости
-  dashboard: true
+  log_steps: true
+  log_tokens: true
+  dashboard: false
+
+platform_toolsets:
+  telegram: ["web", "file", "terminal", "skills", "cronjob", "memory", "todo", "session_search"]
+  cli: ["web", "file", "terminal", "skills", "cronjob", "memory"]
