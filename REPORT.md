@@ -51,7 +51,7 @@ Groq (`gpt-oss-120b`) → упёрлись в бесплатный лимит 80
 | 8. compose | `compose.yaml` с комментариями, порты только на `127.0.0.1`, лимиты | ✅ [`deploy/compose.yaml`](deploy/compose.yaml) |
 | 9. Запуск | `docker-compose up -d`; в логах **«44 total bundled»** навыка + «Connected to Telegram (polling mode)» | ✅ `screenshots/09-logs-start.png` |
 | 10. Связка | Ответ бота получен; агент представился с учётом роли | ✅ `screenshots/10-dialog-intro.png` |
-| 11. Изоляция | `TELEGRAM_ALLOWED_USERS=459403393` — только свой id | ✅ (проверка с чужого аккаунта — `screenshots/11-foreign-denied.png`) |
+| 11. Изоляция | `TELEGRAM_ALLOWED_USERS=459403393` — только свой id | ✅ (проверка с чужого аккаунта — `screenshots/11-foreign-denied-1.jpg`, `11-foreign-denied-2.jpg` (друзья написали боту — ответа нет)) |
 | 12. Память | USER/MEMORY подхвачены: агент сам упомянул Predictive Sensorics, RUL, ветки `agent/*`, `degradation.csv` | ✅ `screenshots/12-memory-proof.png` |
 | 13. Инструменты | Активны web, file, terminal, skills, cronjob, memory, session_search | ✅ |
 | 14. Навык | `arxiv-digest` сработал: реальный дайджест из 3 статей arXiv (SFRF, RULSurv, обзор) со ссылками | ✅ `screenshots/p2-arxiv-digest.png` |
@@ -363,7 +363,7 @@ API или слабым tool-calling — часы на адаптацию нав
   **cron-задача `cron-demo` сработала автономно при закрытом мессенджере** в 14:25 MSK
   — `screenshots/15-cron-fired.png`. (Нюанс ручного `docker kill` — см. «Отладка».)
 - **изоляция доступа:** `TELEGRAM_ALLOWED_USERS=459403393` — только свой id; обращение
-  с постороннего аккаунта игнорируется — `screenshots/11-foreign-denied.png`;
+  с постороннего аккаунта игнорируется — `screenshots/11-foreign-denied-1.jpg`, `11-foreign-denied-2.jpg` (друзья написали боту — ответа нет);
 - **расходы на LLM:** Gemini free tier — расходов нет ($0), биллинг не подключён.
 
 Журнал отладки — см. [раздел «Отладка»](#отладка) (6 реальных ошибок).
